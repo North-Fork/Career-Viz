@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Helix — Jason E. Lewis</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #060b18;
+      color: rgba(215,228,255,0.88);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    #c { display: block; }
+
+    #info {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 252px;
+      background: rgba(6,11,28,0.92);
+      border: 1px solid rgba(215,228,255,0.09);
+      border-radius: 8px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .info-strand-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+    .info-strand-desc {
+      font-size: 0.72rem;
+      color: rgba(215,228,255,0.45);
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    .info-headline {
+      font-size: 0.82rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .info-meta {
+      font-size: 0.7rem;
+      color: rgba(215,228,255,0.4);
+      line-height: 1.6;
+    }
+    .info-hint {
+      font-size: 0.75rem;
+      color: rgba(215,228,255,0.3);
+      line-height: 1.8;
+    }
+
+    #controls {
+      position: absolute;
+      bottom: 20px; right: 16px;
+      display: flex;
+      gap: 6px;
+    }
+    .ctrl-btn {
+      background: none;
+      border: 1px solid rgba(215,228,255,0.1);
+      color: rgba(215,228,255,0.35);
+      font-size: 0.67rem;
+      padding: 4px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
+    }
+    .ctrl-btn:hover { background: rgba(215,228,255,0.05); color: rgba(215,228,255,0.7); }
+    .ctrl-btn.active {
+      background: rgba(215,228,255,0.08);
+      border-color: rgba(215,228,255,0.22);
+      color: rgba(215,228,255,0.8);
+    }
+
+    #viz-nav {
+      position: absolute;
+      top: 16px; left: 24px;
+      display: flex;
+      gap: 4px;
+      margin-top: 52px;
+    }
+    .viz-nav-btn {
+      background: none;
+      border: 1px solid rgba(215,228,255,0.1);
+      color: rgba(215,228,255,0.3);
+      font-size: 0.67rem;
+      padding: 4px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+    .viz-nav-btn:hover {
+      background: rgba(215,228,255,0.05);
+      color: rgba(215,228,255,0.65);
+    }
+    .viz-nav-btn.active {
+      background: rgba(215,228,255,0.08);
+      border-color: rgba(215,228,255,0.25);
+      color: rgba(215,228,255,0.85);
+      cursor: default;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="viz-nav">
+  <a class="viz-nav-btn" href="index.html">Orbits</a>
+  <a class="viz-nav-btn active" href="helix.html">Spiral</a>
+</div>
+
+<div id="info">
+  <div id="info-content">
+    <p class="info-hint">
+      Hover an entry to read it.<br><br>
+      Each strand is a recurring concern<br>
+      winding through the career—<br>
+      the same question, asked again<br>
+      at larger scale each time.
+    </p>
+  </div>
+</div>
+
+<div id="controls">
+  <button class="ctrl-btn active" id="btn-rotate">⟳ Rotate</button>
+  <button class="ctrl-btn" id="btn-pause">⏸ Pause</button>
+</div>
+
+<script src="data/cv-data-enriched.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONCEPTUAL STRANDS
+// These are not literal theme tags. They are the deep recurring
+// concerns in the career — the same questions returning at
+// larger scale over time.
+// ═══════════════════════════════════════════════════════════════
+
+const STRANDS = [
+  {
+    id:     'territory',
+    label:  'Territory & Sovereignty',
+    desc:   'Claiming, inhabiting, and shaping space — digital, linguistic, institutional',
+    color:  '#f5a623',
+    offset: 0,
+    themes: new Set([
+      'Indigenous futures', 'Indigenous digital sovereignty',
+      'Aboriginal territories in cyberspace', 'Language revitalization',
+      'Settler colonialism and technology', 'Indigenous methodologies',
+      'Indigenous pedagogy',
+    ]),
+    groups: new Set(['Policy Papers', 'Keynotes', 'Service']),
+  },
+  {
+    id:     'word',
+    label:  'The Living Word',
+    desc:   'Language, text, and code as animate, resistant, non-Western material',
+    color:  '#c084fc',
+    offset: Math.PI * 0.5,
+    themes: new Set([
+      'Electronic literature', 'Computational poetry', 'Digital storytelling',
+      'Generative media', 'Creative coding', 'Mobile media',
+      'Sound and music', 'AI and creativity',
+    ]),
+    groups: new Set(['Poetry', "Artist's Books", 'Websites', 'Invited Publications']),
+  },
+  {
+    id:     'making',
+    label:  'Making & Practice',
+    desc:   'Objects, installations, artworks — territory-making through form',
+    color:  '#38bdf8',
+    offset: Math.PI,
+    themes: new Set([
+      'New media art', 'Computational media', 'Interactive installation',
+      'Cultural technology', 'Research-creation', 'Curatorial practice',
+      'Game design',
+    ]),
+    groups: new Set([
+      'Creative Works', 'Group Exhibitions', 'Solo Exhibitions',
+      'Commissions', 'Residencies', 'Curatorial', 'Productions',
+      'Film Screenings',
+    ]),
+  },
+  {
+    id:     'infrastructure',
+    label:  'Building Infrastructure',
+    desc:   'Frameworks, institutions, and programs that open space for others',
+    color:  '#fb7185',
+    offset: Math.PI * 1.5,
+    themes: new Set([
+      'Digital infrastructure', 'Community engagement',
+      'Collaboration and co-creation',
+    ]),
+    groups: new Set([
+      'Employment', 'Funding (PI)', 'Funding (Co-I)',
+      'Symposia Organized', 'Residency Organizer',
+      'Books/Chapters', 'Journal Articles', 'Honors',
+    ]),
+  },
+];
+
+function assignStrand(entry) {
+  const themes = entry.themes || [];
+  const group  = entry.group  || '';
+  let best = STRANDS[0], bestScore = -1;
+  for (const s of STRANDS) {
+    let score = themes.filter(t => s.themes.has(t)).length * 2;
+    if (s.groups.has(group)) score += 1.5;
+    if (score > bestScore) { bestScore = score; best = s; }
+  }
+  return best;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELIX PARAMETERS
+// ═══════════════════════════════════════════════════════════════
+
+const YEAR_MIN  = 1985;
+const YEAR_MAX  = 2026;
+const N_TURNS   = 6.5;
+const ROT_SPEED = 0.0016;
+
+function parseYear(s) {
+  if (!s) return null;
+  const parts = String(s).split('/');
+  if (parts.length === 3) { const y = parseInt(parts[2]); return isNaN(y) ? null : y; }
+  const m = String(s).match(/\b(19|20)\d{2}\b/);
+  return m ? parseInt(m[0]) : null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS + LAYOUT
+// ═══════════════════════════════════════════════════════════════
+
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W, H, cx, helixH, topPad, botPad, R, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx     = W / 2;
+  topPad = 88;
+  botPad = 54;
+  helixH = H - topPad - botPad;
+  R      = Math.min(W * 0.195, 165);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+let rotAngle      = 0;
+let rotating      = true;
+let hoveredPt     = null;
+let hoveredStrand = null;
+let allPoints     = [];
+let rawData       = [];
+let strandDensity = {}; // strandId → { year → count }
+
+// ═══════════════════════════════════════════════════════════════
+// PROJECTION
+// ═══════════════════════════════════════════════════════════════
+
+function project(year, strandOffset) {
+  const t     = (year - YEAR_MIN) / (YEAR_MAX - YEAR_MIN);
+  const angle = t * N_TURNS * 2 * Math.PI + strandOffset + rotAngle;
+  return {
+    x: cx + R * Math.cos(angle),
+    y: topPad + t * helixH,
+    z: Math.sin(angle),   // -1 back → +1 front
+    t,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD & UPDATE POINTS
+// ═══════════════════════════════════════════════════════════════
+
+const HEAVY = new Set([
+  'Books/Chapters', 'Journal Articles', 'Keynotes',
+  'Solo Exhibitions', 'Creative Works', 'Honors', 'Funding (PI)',
+]);
+
+function buildPoints() {
+  allPoints = [];
+  // Reset density
+  for (const s of STRANDS) strandDensity[s.id] = {};
+
+  for (const entry of rawData) {
+    const year = parseYear(entry['start date']);
+    if (!year || year < YEAR_MIN || year > YEAR_MAX) continue;
+    const strand = assignStrand(entry);
+    const weight = HEAVY.has(entry.group) ? 2.4 : 1.4;
+    const pt = project(year, strand.offset);
+    allPoints.push({ ...pt, strand, entry, year, weight });
+
+    const d = strandDensity[strand.id];
+    d[year] = (d[year] || 0) + 1;
+  }
+}
+
+function updatePositions() {
+  for (const pt of allPoints) {
+    const p = project(pt.year, pt.strand.offset);
+    pt.x = p.x; pt.y = p.y; pt.z = p.z;
+  }
+  // Painter's sort: back to front
+  allPoints.sort((a, b) => a.z - b.z);
+}
+
+function densityAt(strandId, year, win = 3) {
+  const d = strandDensity[strandId];
+  let n = 0;
+  for (let y = year - win; y <= year + win; y++) n += d[y] || 0;
+  return n;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAW
+// ═══════════════════════════════════════════════════════════════
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  drawBgGlow();
+  drawCentralAxis();
+  drawStrandCurves();
+  drawYearMarkers();
+  drawDots();
+  drawHeader();
+  drawLegend();
+}
+
+function drawBgGlow() {
+  const g = ctx.createRadialGradient(cx, H * 0.48, 0, cx, H * 0.48, Math.max(W, H) * 0.55);
+  g.addColorStop(0, 'rgba(18,26,58,0.55)');
+  g.addColorStop(1, 'rgba(6,11,24,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawCentralAxis() {
+  ctx.beginPath();
+  ctx.moveTo(cx, topPad - 12);
+  ctx.lineTo(cx, topPad + helixH + 12);
+  ctx.strokeStyle = 'rgba(215,228,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawStrandCurves() {
+  const STEPS = 600;
+  for (const strand of STRANDS) {
+    const isActive = hoveredStrand === null || hoveredStrand === strand.id;
+    if (!isActive) continue; // skip inactive strands entirely (they remain as faint skeleton)
+
+    // Draw segment by segment so width varies with density
+    let prevPt = null;
+    for (let i = 0; i <= STEPS; i++) {
+      const year = YEAR_MIN + (i / STEPS) * (YEAR_MAX - YEAR_MIN);
+      const pt   = project(year, strand.offset);
+      const depth = (pt.z + 1) / 2; // 0–1
+
+      if (prevPt) {
+        const density  = densityAt(strand.id, Math.round(year));
+        const lw       = 0.4 + Math.min(density * 0.28, 2.2);
+        const alpha    = (0.12 + depth * 0.22) * (hoveredStrand === strand.id ? 1.8 : 1.0);
+
+        ctx.beginPath();
+        ctx.moveTo(prevPt.x, prevPt.y);
+        ctx.lineTo(pt.x, pt.y);
+        ctx.strokeStyle = strand.color;
+        ctx.lineWidth   = lw;
+        ctx.globalAlpha = Math.min(alpha, 0.9);
+        ctx.stroke();
+      }
+      prevPt = pt;
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Faint skeleton for inactive strands when something is hovered
+  if (hoveredStrand !== null) {
+    for (const strand of STRANDS) {
+      if (strand.id === hoveredStrand) continue;
+      ctx.beginPath();
+      let first = true;
+      for (let i = 0; i <= 300; i++) {
+        const year = YEAR_MIN + (i / 300) * (YEAR_MAX - YEAR_MIN);
+        const pt   = project(year, strand.offset);
+        if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = strand.color;
+      ctx.lineWidth   = 0.4;
+      ctx.globalAlpha = 0.05;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+function drawYearMarkers() {
+  const milestones = [1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025];
+  ctx.font      = '9.5px -apple-system, system-ui, sans-serif';
+  ctx.textAlign = 'right';
+  for (const year of milestones) {
+    const t = (year - YEAR_MIN) / (YEAR_MAX - YEAR_MIN);
+    const y = topPad + t * helixH;
+    // Tick
+    ctx.beginPath();
+    ctx.moveTo(cx - 6, y);
+    ctx.lineTo(cx + 6, y);
+    ctx.strokeStyle = 'rgba(215,228,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = 'rgba(215,228,255,0.2)';
+    ctx.fillText(year, cx - 10, y + 3.5);
+  }
+}
+
+function drawDots() {
+  for (const pt of allPoints) {
+    const depth      = (pt.z + 1) / 2;
+    const isHov      = pt === hoveredPt;
+    const isHovStr   = hoveredStrand === pt.strand.id;
+    const dimmed     = hoveredStrand !== null && !isHovStr;
+
+    const r     = pt.weight * (0.55 + depth * 0.65);
+    const alpha = dimmed
+      ? 0.04
+      : isHov ? 1.0
+      : (0.12 + depth * 0.72) * (isHovStr ? 1.25 : 1);
+
+    // Glow halo — only for front-facing, non-dimmed dots
+    if (depth > 0.6 && !dimmed) {
+      const gr = r * (isHov ? 5 : 3.5);
+      const g  = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, gr);
+      g.addColorStop(0, pt.strand.color + (isHov ? '66' : (isHovStr ? '44' : '22')));
+      g.addColorStop(1, pt.strand.color + '00');
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, gr, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.globalAlpha = isHov ? 1 : (isHovStr ? 0.85 : 0.55);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+    ctx.fillStyle   = pt.strand.color;
+    ctx.globalAlpha = Math.min(alpha, 1);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Selection ring
+    if (isHov) {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, r + 4.5, 0, Math.PI * 2);
+      ctx.strokeStyle = pt.strand.color;
+      ctx.lineWidth   = 1.2;
+      ctx.globalAlpha = 0.65;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+function drawHeader() {
+  ctx.textAlign = 'left';
+
+  ctx.font      = 'bold 11px -apple-system, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(215,228,255,0.82)';
+  ctx.fillText('CAREER HELIX', 24, 30);
+
+  ctx.font      = '10px -apple-system, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(215,228,255,0.3)';
+  ctx.fillText('Jason E. Lewis  ·  1985 – 2026', 24, 46);
+
+  ctx.fillStyle = 'rgba(215,228,255,0.18)';
+  ctx.fillText('Each strand returns — the same concern, at larger scale each time.', 24, 62);
+}
+
+function drawLegend() {
+  const baseY = H - 18 - STRANDS.length * 22;
+  for (let i = 0; i < STRANDS.length; i++) {
+    const s   = STRANDS[i];
+    const y   = baseY + i * 22;
+    const act = hoveredStrand === null || hoveredStrand === s.id;
+
+    ctx.globalAlpha = act ? 0.9 : 0.2;
+
+    ctx.beginPath();
+    ctx.arc(30, y + 5, 4, 0, Math.PI * 2);
+    ctx.fillStyle = s.color;
+    ctx.fill();
+
+    ctx.font      = '10px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(215,228,255,0.72)';
+    ctx.textAlign = 'left';
+    ctx.fillText(s.label, 42, y + 9);
+
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOVER
+// ═══════════════════════════════════════════════════════════════
+
+function findNearest(mx, my) {
+  let best = null, bestD = 400;
+  for (const pt of allPoints) {
+    const d = (pt.x - mx) ** 2 + (pt.y - my) ** 2;
+    if (d < bestD) { bestD = d; best = pt; }
+  }
+  return bestD < 400 ? best : null;
+}
+
+function updateInfo(pt) {
+  const el = document.getElementById('info-content');
+  if (!pt) {
+    el.innerHTML = `<p class="info-hint">
+      Hover an entry to read it.<br><br>
+      Each strand is a recurring concern<br>
+      winding through the career—<br>
+      the same question, asked again<br>
+      at larger scale each time.
+    </p>`;
+    return;
+  }
+  const hl = (pt.entry.headline || '').replace(/<[^>]+>/g, '').trim();
+  el.innerHTML = `
+    <div class="info-strand-label" style="color:${pt.strand.color}">${esc(pt.strand.label)}</div>
+    <div class="info-strand-desc">${esc(pt.strand.desc)}</div>
+    <div class="info-headline">${esc(hl.length > 110 ? hl.slice(0, 108) + '…' : hl)}</div>
+    <div class="info-meta">
+      ${pt.year}
+      ${pt.entry.group ? ' &nbsp;·&nbsp; ' + esc(pt.entry.group) : ''}
+      ${pt.entry.org   ? '<br>' + esc(pt.entry.org) : ''}
+    </div>
+  `;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;');
+}
+
+canvas.addEventListener('mousemove', e => {
+  const r  = canvas.getBoundingClientRect();
+  const pt = findNearest(e.clientX - r.left, e.clientY - r.top);
+  hoveredPt     = pt;
+  hoveredStrand = pt ? pt.strand.id : null;
+  updateInfo(pt);
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredPt = hoveredStrand = null;
+  updateInfo(null);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════
+
+const btnRotate = document.getElementById('btn-rotate');
+const btnPause  = document.getElementById('btn-pause');
+
+btnRotate.addEventListener('click', () => {
+  rotating = true;
+  btnRotate.classList.add('active');
+  btnPause.classList.remove('active');
+});
+btnPause.addEventListener('click', () => {
+  rotating = false;
+  btnPause.classList.add('active');
+  btnRotate.classList.remove('active');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════════════════════════════
+
+function frame() {
+  if (rotating) rotAngle += ROT_SPEED;
+  updatePositions();
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+resize();
+window.addEventListener('resize', () => { resize(); buildPoints(); });
+
+if (typeof window.__TIMELINE_DATA__ !== 'undefined') {
+  rawData = window.__TIMELINE_DATA__;
+  buildPoints();
+  requestAnimationFrame(frame);
+} else {
+  ctx.fillStyle = 'rgba(215,228,255,0.45)';
+  ctx.font      = '13px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('Data not loaded — serve from Coding-Experiments/ with python3 -m http.server 8001', W / 2, H / 2);
+}
+</script>
+</body>
+</html>

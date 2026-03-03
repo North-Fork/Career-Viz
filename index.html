@@ -318,6 +318,36 @@
       background: rgba(215,228,255,0.04);
       color: rgba(215,228,255,0.6);
     }
+
+    #viz-nav {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+    .viz-nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.67rem;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .viz-nav-btn:hover {
+      background: rgba(215,228,255,0.04);
+      color: rgba(215,228,255,0.65);
+    }
+    .viz-nav-btn.active {
+      background: rgba(215,228,255,0.08);
+      border-color: rgba(215,228,255,0.25);
+      color: var(--text);
+      cursor: default;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -329,6 +359,10 @@
       Jason E. Lewis &nbsp;·&nbsp; Career Themes &nbsp;·&nbsp;
       <span id="subtitle-years">1995 – 2026</span>
     </span>
+    <nav id="viz-nav">
+      <a class="viz-nav-btn active" href="index.html">Orbits</a>
+      <a class="viz-nav-btn" href="helix.html">Spiral</a>
+    </nav>
   </header>
 
   <div id="viz-wrap">
