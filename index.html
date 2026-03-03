@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Constellation — Jason E. Lewis</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060b18;
+      --panel:   rgba(6, 11, 28, 0.94);
+      --text:    rgba(215, 228, 255, 0.88);
+      --dim:     rgba(215, 228, 255, 0.38);
+      --border:  rgba(215, 228, 255, 0.09);
+      --c-indigenous: #f5a623;
+      --c-creative:   #c084fc;
+      --c-technical:  #38bdf8;
+      --c-community:  #fb7185;
+      --c-other:      #5c7080;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────────── */
+    header {
+      flex-shrink: 0;
+      padding: 16px 24px 11px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── VIZ AREA ────────────────────────────────────────────── */
+    #viz-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #network {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ── INFO PANEL ──────────────────────────────────────────── */
+    #info-panel {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 248px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .info-hint {
+      color: var(--dim);
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+
+    .info-theme-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .info-meta {
+      font-size: 0.74rem;
+      color: var(--dim);
+      margin-bottom: 14px;
+    }
+
+    .info-section {
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      margin-bottom: 6px;
+      margin-top: 12px;
+    }
+
+    .info-connections {
+      list-style: none;
+    }
+
+    .info-connections li {
+      font-size: 0.77rem;
+      padding: 3px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(215,228,255,0.05);
+    }
+
+    .conn-weight {
+      font-size: 0.68rem;
+      color: var(--dim);
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .info-entries {
+      list-style: none;
+    }
+
+    .info-entries li {
+      font-size: 0.72rem;
+      color: var(--dim);
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(215,228,255,0.05);
+      line-height: 1.4;
+    }
+
+    /* ── CONTROLS ────────────────────────────────────────────── */
+    #controls {
+      flex-shrink: 0;
+      padding: 12px 24px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #time-controls {
+      flex: 1;
+      max-width: 580px;
+    }
+
+    .ctrl-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .ctrl-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+    }
+
+    #year-range-display {
+      font-size: 0.78rem;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Dual range slider */
+    #slider-wrap {
+      position: relative;
+      height: 20px;
+    }
+
+    #slider-track-bg {
+      position: absolute;
+      top: 9px;
+      left: 0; right: 0;
+      height: 2px;
+      background: rgba(215,228,255,0.1);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    #slider-track-fill {
+      position: absolute;
+      top: 9px;
+      height: 2px;
+      background: rgba(215,228,255,0.45);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .range-input {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(215, 228, 255, 0.9);
+      border: 2px solid var(--bg);
+      cursor: pointer;
+      pointer-events: all;
+      box-shadow: 0 0 8px rgba(215,228,255,0.35);
+    }
+
+    .range-input::-moz-range-thumb {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(215, 228, 255, 0.9);
+      border: 2px solid var(--bg);
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    #play-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+
+    #play-btn:hover, #play-btn.active {
+      background: rgba(215,228,255,0.07);
+      border-color: rgba(215,228,255,0.3);
+      color: var(--text);
+    }
+
+    /* Legend */
+    #legend {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.7rem;
+      color: var(--dim);
+    }
+
+    .legend-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Stats */
+    #stats {
+      font-size: 0.72rem;
+      color: var(--dim);
+      line-height: 1.8;
+      min-width: 120px;
+    }
+
+    #stats .stat-val {
+      color: var(--text);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* View toggle */
+    #view-toggle {
+      display: flex;
+      gap: 4px;
+    }
+
+    .view-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.68rem;
+      padding: 3px 9px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
+    }
+
+    .view-btn.active {
+      background: rgba(215,228,255,0.1);
+      border-color: rgba(215,228,255,0.3);
+      color: var(--text);
+    }
+
+    .view-btn:hover:not(.active) {
+      background: rgba(215,228,255,0.04);
+      color: rgba(215,228,255,0.6);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <h1>Research Constellation</h1>
+    <span class="subtitle">
+      Jason E. Lewis &nbsp;·&nbsp; Career Themes &nbsp;·&nbsp;
+      <span id="subtitle-years">1995 – 2026</span>
+    </span>
+  </header>
+
+  <div id="viz-wrap">
+    <svg id="network"></svg>
+
+    <div id="info-panel">
+      <div id="info-content">
+        <p class="info-hint">Hover a theme node<br>to explore connections.<br><br>Drag nodes to rearrange.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div id="time-controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Year Range</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="year-range-display">1995 – 2026</span>
+          <button id="play-btn">▶ Grow</button>
+        </div>
+      </div>
+      <div id="slider-wrap">
+        <div id="slider-track-bg"></div>
+        <div id="slider-track-fill"></div>
+        <input type="range" class="range-input" id="range-min"
+               min="1995" max="2026" value="1995" step="1">
+        <input type="range" class="range-input" id="range-max"
+               min="1995" max="2026" value="2026" step="1">
+      </div>
+    </div>
+
+    <div id="view-toggle">
+      <button class="view-btn active" id="btn-core" title="Top themes only">Core</button>
+      <button class="view-btn" id="btn-full" title="All themes">Full</button>
+    </div>
+
+    <div id="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#f5a623"></div>
+        Indigenous Sovereignty &amp; Futures
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#c084fc"></div>
+        Creative &amp; Arts Practice
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#38bdf8"></div>
+        Computational &amp; Technical
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#fb7185"></div>
+        Community, Pedagogy &amp; Collaboration
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#5c7080"></div>
+        Other
+      </div>
+    </div>
+
+    <div id="stats">
+      <div>Themes <span class="stat-val" id="stat-themes">—</span></div>
+      <div>Connections <span class="stat-val" id="stat-links">—</span></div>
+      <div>CV entries <span class="stat-val" id="stat-entries">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Data: relative path from Career-Viz/ to Timeline project -->
+<script src="data/cv-data-enriched.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+
+const YEAR_MIN = 1995;
+const YEAR_MAX = 2026;
+const PLAY_INTERVAL_MS = 650;
+
+// Thematic clusters with curated membership
+const CLUSTERS = {
+  indigenous: {
+    color: '#f5a623',
+    name: 'Indigenous Sovereignty & Futures',
+    themes: new Set([
+      'Indigenous futures',
+      'Indigenous digital sovereignty',
+      'Aboriginal territories in cyberspace',
+      'Indigenous methodologies',
+      'Indigenous pedagogy',
+      'Language revitalization',
+      'Settler colonialism and technology',
+    ])
+  },
+  creative: {
+    color: '#c084fc',
+    name: 'Creative & Arts Practice',
+    themes: new Set([
+      'New media art',
+      'Electronic literature',
+      'Computational poetry',
+      'Interactive installation',
+      'Mobile media',
+      'Sound and music',
+      'Generative media',
+      'Creative coding',
+      'Curatorial practice',
+      'Digital storytelling',
+      'Research-creation',
+    ])
+  },
+  technical: {
+    color: '#38bdf8',
+    name: 'Computational & Technical',
+    themes: new Set([
+      'Computational media',
+      'Digital infrastructure',
+      'Cultural technology',
+      'AI and creativity',
+    ])
+  },
+  community: {
+    color: '#fb7185',
+    name: 'Community, Pedagogy & Collaboration',
+    themes: new Set([
+      'Community engagement',
+      'Game design',
+      'Collaboration and co-creation',
+    ])
+  }
+};
+
+function getCluster(name) {
+  for (const [id, c] of Object.entries(CLUSTERS)) {
+    if (c.themes.has(name)) return id;
+  }
+  return 'other';
+}
+
+function getColor(name) {
+  const cl = getCluster(name);
+  return cl === 'other' ? '#5c7080' : CLUSTERS[cl].color;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+let allData     = [];
+let yearMin     = YEAR_MIN;
+let yearMax     = YEAR_MAX;
+let viewMode    = 'core';   // 'core' | 'full'
+let simulation  = null;
+let currentNodes = [];
+let currentLinks = [];
+let playInterval = null;
+let playHead    = YEAR_MIN;
+
+// Threshold: minimum count to show a theme
+function minCount() { return viewMode === 'core' ? 4 : 2; }
+function minLink()  { return viewMode === 'core' ? 3 : 2; }
+
+// ═══════════════════════════════════════════════════════════════
+// D3 SETUP
+// ═══════════════════════════════════════════════════════════════
+
+const svg    = d3.select('#network');
+let W = 0, H = 0;
+
+function getSize() {
+  const el = document.getElementById('viz-wrap');
+  W = el.clientWidth;
+  H = el.clientHeight;
+}
+
+// SVG defs: glow filters
+svg.append('defs').html(`
+  <filter id="glow-lg" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="6" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <filter id="glow-sm" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="2.5" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <filter id="glow-text" x="-20%" y="-40%" width="140%" height="180%">
+    <feGaussianBlur stdDeviation="3" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+`);
+
+function addStarfield() {
+  const g = svg.append('g').attr('class', 'starfield').attr('pointer-events', 'none');
+  for (let i = 0; i < 240; i++) {
+    const rng = Math.random();
+    const r = rng < 0.72 ? 0.5 : rng < 0.94 ? 1 : 1.8;
+    const opacity = 0.02 + Math.random() * 0.07;
+    g.append('circle')
+      .attr('cx', (Math.random() * 100).toFixed(2) + '%')
+      .attr('cy', (Math.random() * 100).toFixed(2) + '%')
+      .attr('r', r)
+      .attr('fill', 'white')
+      .attr('opacity', opacity);
+  }
+}
+
+const canvas = svg.append('g').attr('class', 'canvas');
+
+// Transparent background rect — catches drag on empty space
+const bgRect = canvas.append('rect')
+  .attr('class', 'canvas-bg')
+  .attr('fill', 'none')
+  .attr('pointer-events', 'all')
+  .attr('cursor', 'grab');
+
+const gEdges = canvas.append('g').attr('class', 'edges-layer');
+const gNodes = canvas.append('g').attr('class', 'nodes-layer');
+
+// Pan on drag in blank space
+let panX = 0, panY = 0;
+canvas.call(
+  d3.drag()
+    .filter(event => event.target.classList.contains('canvas-bg'))
+    .on('start', () => bgRect.attr('cursor', 'grabbing'))
+    .on('drag',  event => {
+      panX += event.dx;
+      panY += event.dy;
+      canvas.attr('transform', `translate(${panX},${panY})`);
+    })
+    .on('end', () => bgRect.attr('cursor', 'grab'))
+);
+
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+
+function parseYear(s) {
+  if (!s) return null;
+  const parts = String(s).split('/');
+  if (parts.length === 3) {
+    const y = parseInt(parts[2]);
+    return isNaN(y) ? null : y;
+  }
+  const m = String(s).match(/\b(19|20)\d{2}\b/);
+  return m ? parseInt(m[0]) : null;
+}
+
+function computeGraph(yMin, yMax) {
+  const entries = allData.filter(d => {
+    const y = parseYear(d['start date']);
+    return y !== null && y >= yMin && y <= yMax;
+  });
+
+  // Theme frequency + sample entries
+  const themeCounts  = new Map();
+  const themeEntries = new Map();
+
+  entries.forEach(entry => {
+    (entry.themes || []).forEach(theme => {
+      themeCounts.set(theme, (themeCounts.get(theme) || 0) + 1);
+      if (!themeEntries.has(theme)) themeEntries.set(theme, []);
+      const list = themeEntries.get(theme);
+      if (list.length < 4) {
+        const headline = (entry.headline || '').replace(/<[^>]+>/g, '').trim();
+        if (headline) list.push(headline);
+      }
+    });
+  });
+
+  const mc = minCount();
+
+  // Co-occurrence
+  const cooc = new Map();
+  entries.forEach(entry => {
+    const themes = (entry.themes || []).filter(t => (themeCounts.get(t) || 0) >= mc);
+    for (let i = 0; i < themes.length; i++) {
+      for (let j = i + 1; j < themes.length; j++) {
+        const key = themes[i] < themes[j]
+          ? themes[i] + '\x00' + themes[j]
+          : themes[j] + '\x00' + themes[i];
+        cooc.set(key, (cooc.get(key) || 0) + 1);
+      }
+    }
+  });
+
+  // Nodes
+  const nodes = [];
+  for (const [name, count] of themeCounts) {
+    if (count >= mc) {
+      nodes.push({
+        id:      name,
+        count,
+        cluster: getCluster(name),
+        color:   getColor(name),
+        entries: themeEntries.get(name) || [],
+        connections: []
+      });
+    }
+  }
+  nodes.sort((a, b) => b.count - a.count);
+
+  const nodeSet = new Set(nodes.map(n => n.id));
+
+  // Links + build adjacency for info panel
+  const ml = minLink();
+  const linksByNode = new Map();
+  const links = [];
+
+  for (const [key, value] of cooc) {
+    if (value < ml) continue;
+    const sep = key.indexOf('\x00');
+    const src = key.slice(0, sep);
+    const tgt = key.slice(sep + 1);
+    if (!nodeSet.has(src) || !nodeSet.has(tgt)) continue;
+    links.push({ source: src, target: tgt, value });
+
+    if (!linksByNode.has(src)) linksByNode.set(src, []);
+    if (!linksByNode.has(tgt)) linksByNode.set(tgt, []);
+    linksByNode.get(src).push({ name: tgt, value });
+    linksByNode.get(tgt).push({ name: src, value });
+  }
+
+  nodes.forEach(n => {
+    const conns = linksByNode.get(n.id) || [];
+    conns.sort((a, b) => b.value - a.value);
+    n.connections = conns;
+  });
+
+  return { nodes, links, entryCount: entries.length };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+
+function nodeR(count) {
+  return 4 + Math.sqrt(count) * 3.4;
+}
+
+function linkW(value) {
+  return 0.5 + Math.log1p(value) * 0.75;
+}
+
+function linkAlpha(value, maxVal) {
+  return 0.05 + (value / maxVal) * 0.38;
+}
+
+function edgeKey(d) {
+  const src = typeof d.source === 'object' ? d.source.id : d.source;
+  const tgt = typeof d.target === 'object' ? d.target.id : d.target;
+  return src < tgt ? src + '\x00' + tgt : tgt + '\x00' + src;
+}
+
+function render(graph) {
+  // Preserve positions from previous simulation nodes
+  const oldPos = new Map();
+  currentNodes.forEach(n => {
+    if (n.x !== undefined) oldPos.set(n.id, { x: n.x, y: n.y });
+  });
+
+  currentNodes = graph.nodes;
+  currentLinks = graph.links;
+
+  const maxVal = graph.links.length > 0
+    ? Math.max(...graph.links.map(l => l.value))
+    : 1;
+
+  // ── Edges ──────────────────────────────────────────────────
+  const edgeSel = gEdges.selectAll('line.edge')
+    .data(graph.links, edgeKey);
+
+  edgeSel.exit()
+    .transition().duration(350)
+    .attr('stroke-opacity', 0)
+    .remove();
+
+  const edgeEnter = edgeSel.enter()
+    .append('line')
+    .attr('class', 'edge')
+    .attr('stroke', 'rgba(215,228,255,0.5)')
+    .attr('stroke-opacity', 0)
+    .attr('stroke-linecap', 'round');
+
+  edgeEnter.merge(edgeSel)
+    .attr('stroke-width', d => linkW(d.value))
+    .transition().duration(500)
+    .attr('stroke-opacity', d => linkAlpha(d.value, maxVal));
+
+  // ── Nodes ──────────────────────────────────────────────────
+  const nodeSel = gNodes.selectAll('g.node')
+    .data(graph.nodes, d => d.id);
+
+  nodeSel.exit()
+    .transition().duration(350)
+    .attr('opacity', 0)
+    .remove();
+
+  const nodeEnter = nodeSel.enter()
+    .append('g')
+    .attr('class', 'node')
+    .attr('opacity', 0)
+    .attr('cursor', 'pointer')
+    .call(
+      d3.drag()
+        .on('start', dragstart)
+        .on('drag',  dragged)
+        .on('end',   dragend)
+    )
+    .on('mouseenter', onNodeEnter)
+    .on('mouseleave', onNodeLeave);
+
+  // Outer glow ring
+  nodeEnter.append('circle')
+    .attr('class', 'node-glow')
+    .attr('fill', d => d.color)
+    .attr('opacity', 0.14)
+    .attr('pointer-events', 'none')
+    .attr('filter', 'url(#glow-lg)');
+
+  // Core circle
+  nodeEnter.append('circle')
+    .attr('class', 'node-core')
+    .attr('fill', d => d.color)
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 1.2)
+    .attr('stroke-opacity', 0.4);
+
+  // Label
+  nodeEnter.append('text')
+    .attr('class', 'node-label')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'middle')
+    .attr('fill', 'white')
+    .attr('pointer-events', 'none')
+    .attr('filter', 'url(#glow-text)');
+
+  // Merged update
+  const merged = nodeEnter.merge(nodeSel);
+
+  merged
+    .transition().duration(480)
+    .attr('opacity', 1);
+
+  merged.select('.node-glow')
+    .transition().duration(480)
+    .attr('r', d => nodeR(d.count) * 2.2);
+
+  merged.select('.node-core')
+    .transition().duration(480)
+    .attr('r', d => nodeR(d.count));
+
+  merged.select('.node-label')
+    .attr('font-size', d => {
+      const r = nodeR(d.count);
+      if (r >= 18) return '11px';
+      if (r >= 12) return '9px';
+      return '0px';
+    })
+    .attr('fill-opacity', d => nodeR(d.count) >= 12 ? 0.8 : 0)
+    .attr('dy', d => nodeR(d.count) + 11)
+    .text(d => {
+      if (nodeR(d.count) < 12) return '';
+      return d.id.length > 24 ? d.id.slice(0, 22) + '…' : d.id;
+    });
+
+  // ── Simulation ─────────────────────────────────────────────
+  graph.nodes.forEach(n => {
+    const old = oldPos.get(n.id);
+    if (old) {
+      n.x = old.x; n.y = old.y;
+    } else {
+      n.x = W / 2 + (Math.random() - 0.5) * 160;
+      n.y = H / 2 + (Math.random() - 0.5) * 160;
+    }
+  });
+
+  if (!simulation) {
+    simulation = d3.forceSimulation()
+      .force('link',      d3.forceLink().id(d => d.id))
+      .force('charge',    d3.forceManyBody())
+      .force('center',    d3.forceCenter(W / 2, H / 2))
+      .force('collision', d3.forceCollide())
+      .on('tick', ticked);
+  }
+
+  simulation
+    .nodes(graph.nodes)
+    .force('link')
+      .links(graph.links)
+      .distance(d => 90 - Math.min(d.value * 2.5, 45))
+      .strength(0.35);
+
+  simulation
+    .force('charge')
+      .strength(d => -Math.pow(nodeR(d.count), 1.6) * 3.8);
+
+  simulation
+    .force('center')
+      .x(W / 2).y(H / 2).strength(0.04);
+
+  simulation
+    .force('collision')
+      .radius(d => nodeR(d.count) + 8)
+      .strength(0.75);
+
+  simulation.alpha(0.45).restart();
+
+  // Stats
+  document.getElementById('stat-themes').textContent  = graph.nodes.length;
+  document.getElementById('stat-links').textContent   = graph.links.length;
+  document.getElementById('stat-entries').textContent = graph.entryCount;
+}
+
+function ticked() {
+  gEdges.selectAll('line.edge')
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+
+  gNodes.selectAll('g.node')
+    .attr('transform', d => `translate(${d.x ?? W/2},${d.y ?? H/2})`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAG
+// ═══════════════════════════════════════════════════════════════
+
+function dragstart(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+
+function dragged(event, d) {
+  d.fx = event.x; d.fy = event.y;
+}
+
+function dragend(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOVER
+// ═══════════════════════════════════════════════════════════════
+
+function onNodeEnter(event, d) {
+  const connectedIds = new Set([d.id]);
+
+  gEdges.selectAll('line.edge').each(function(l) {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    if (src === d.id || tgt === d.id) {
+      connectedIds.add(src);
+      connectedIds.add(tgt);
+    }
+  });
+
+  const maxVal = currentLinks.length > 0
+    ? Math.max(...currentLinks.map(l => l.value))
+    : 1;
+
+  gEdges.selectAll('line.edge')
+    .transition().duration(120)
+    .attr('stroke', l => {
+      const src = typeof l.source === 'object' ? l.source.id : l.source;
+      const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+      return (src === d.id || tgt === d.id) ? d.color : 'rgba(215,228,255,0.5)';
+    })
+    .attr('stroke-opacity', l => {
+      const src = typeof l.source === 'object' ? l.source.id : l.source;
+      const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+      return (src === d.id || tgt === d.id)
+        ? 0.7
+        : linkAlpha(l.value, maxVal) * 0.15;
+    });
+
+  gNodes.selectAll('g.node')
+    .transition().duration(120)
+    .attr('opacity', n => connectedIds.has(n.id) ? 1 : 0.1);
+
+  d3.select(event.currentTarget).select('.node-glow')
+    .transition().duration(120)
+    .attr('opacity', 0.45);
+
+  showInfo(d);
+}
+
+function onNodeLeave() {
+  const maxVal = currentLinks.length > 0
+    ? Math.max(...currentLinks.map(l => l.value))
+    : 1;
+
+  gEdges.selectAll('line.edge')
+    .transition().duration(280)
+    .attr('stroke', 'rgba(215,228,255,0.5)')
+    .attr('stroke-opacity', d => linkAlpha(d.value, maxVal));
+
+  gNodes.selectAll('g.node')
+    .transition().duration(280)
+    .attr('opacity', 1);
+
+  gNodes.selectAll('.node-glow')
+    .transition().duration(280)
+    .attr('opacity', 0.14);
+
+  hideInfo();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INFO PANEL
+// ═══════════════════════════════════════════════════════════════
+
+function showInfo(d) {
+  const topConns = (d.connections || []).slice(0, 6);
+  const samples  = (d.entries || []).slice(0, 3).map(e =>
+    e.replace(/<[^>]+>/g, '').trim()
+  ).filter(e => e.length > 0);
+
+  const clLabel = d.cluster === 'other'
+    ? 'Other Themes'
+    : CLUSTERS[d.cluster].name;
+
+  document.getElementById('info-content').innerHTML = `
+    <div class="info-theme-name" style="color:${d.color}">${escHtml(d.id)}</div>
+    <div class="info-meta">
+      ${d.count} ${d.count === 1 ? 'entry' : 'entries'}&nbsp; · &nbsp;${escHtml(clLabel)}
+    </div>
+    ${topConns.length ? `
+      <div class="info-section">Connected Themes</div>
+      <ul class="info-connections">
+        ${topConns.map(c =>
+          `<li><span>${escHtml(c.name)}</span>
+               <span class="conn-weight">${c.value}×</span></li>`
+        ).join('')}
+      </ul>
+    ` : ''}
+    ${samples.length ? `
+      <div class="info-section">Sample Entries</div>
+      <ul class="info-entries">
+        ${samples.map(e =>
+          `<li>${escHtml(e.length > 72 ? e.slice(0, 70) + '…' : e)}</li>`
+        ).join('')}
+      </ul>
+    ` : ''}
+  `;
+}
+
+function hideInfo() {
+  document.getElementById('info-content').innerHTML =
+    `<p class="info-hint">Hover a theme node<br>to explore connections.<br><br>Drag nodes to rearrange.</p>`;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════
+
+const rangeMin = document.getElementById('range-min');
+const rangeMax = document.getElementById('range-max');
+
+function updateSliderUI() {
+  const lo   = parseInt(rangeMin.value);
+  const hi   = parseInt(rangeMax.value);
+  const span = YEAR_MAX - YEAR_MIN;
+  const lPct = ((lo - YEAR_MIN) / span * 100).toFixed(2);
+  const rPct = ((YEAR_MAX - hi)  / span * 100).toFixed(2);
+
+  document.getElementById('slider-track-fill').style.left  = lPct + '%';
+  document.getElementById('slider-track-fill').style.right = rPct + '%';
+  document.getElementById('year-range-display').textContent = `${lo} – ${hi}`;
+  document.getElementById('subtitle-years').textContent     = `${lo} – ${hi}`;
+
+  // Z-index so whichever thumb is "pushed" stays interactive
+  rangeMin.style.zIndex = lo / (YEAR_MAX - YEAR_MIN) > 0.5 ? '5' : '4';
+  rangeMax.style.zIndex = lo / (YEAR_MAX - YEAR_MIN) > 0.5 ? '4' : '5';
+}
+
+function applyRange() {
+  yearMin = parseInt(rangeMin.value);
+  yearMax = parseInt(rangeMax.value);
+  render(computeGraph(yearMin, yearMax));
+}
+
+rangeMin.addEventListener('input', function() {
+  const hi = parseInt(rangeMax.value);
+  if (parseInt(this.value) >= hi) this.value = hi - 1;
+  updateSliderUI();
+  applyRange();
+});
+
+rangeMax.addEventListener('input', function() {
+  const lo = parseInt(rangeMin.value);
+  if (parseInt(this.value) <= lo) this.value = lo + 1;
+  updateSliderUI();
+  applyRange();
+});
+
+// Play (career growth animation)
+const playBtn = document.getElementById('play-btn');
+
+playBtn.addEventListener('click', function() {
+  if (playInterval) {
+    stopPlay();
+    return;
+  }
+  // Start from beginning
+  playHead = YEAR_MIN + 1;
+  rangeMin.value = YEAR_MIN;
+  rangeMax.value = YEAR_MIN;
+  updateSliderUI();
+  applyRange();
+
+  playBtn.textContent = '■ Stop';
+  playBtn.classList.add('active');
+
+  playInterval = setInterval(() => {
+    rangeMax.value = playHead;
+    updateSliderUI();
+    applyRange();
+    playHead++;
+    if (playHead > YEAR_MAX) {
+      stopPlay();
+      // Settle on full range
+      rangeMin.value = YEAR_MIN;
+      rangeMax.value = YEAR_MAX;
+      updateSliderUI();
+      applyRange();
+    }
+  }, PLAY_INTERVAL_MS);
+});
+
+function stopPlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; }
+  playBtn.textContent = '▶ Grow';
+  playBtn.classList.remove('active');
+}
+
+// View mode toggle
+document.getElementById('btn-core').addEventListener('click', function() {
+  if (viewMode === 'core') return;
+  viewMode = 'core';
+  this.classList.add('active');
+  document.getElementById('btn-full').classList.remove('active');
+  render(computeGraph(yearMin, yearMax));
+});
+
+document.getElementById('btn-full').addEventListener('click', function() {
+  if (viewMode === 'full') return;
+  viewMode = 'full';
+  this.classList.add('active');
+  document.getElementById('btn-core').classList.remove('active');
+  render(computeGraph(yearMin, yearMax));
+});
+
+// Resize
+window.addEventListener('resize', () => {
+  getSize();
+  svg.attr('width', W).attr('height', H);
+  bgRect.attr('width', W).attr('height', H);
+  if (simulation) {
+    simulation.force('center').x(W / 2).y(H / 2);
+    simulation.alpha(0.2).restart();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+function init() {
+  if (typeof window.__TIMELINE_DATA__ === 'undefined') {
+    document.getElementById('info-content').innerHTML = `
+      <p class="info-hint" style="color:#fb7185;line-height:1.7">
+        Could not load enriched CV data.<br><br>
+        Serve from the parent directory so the relative path resolves:<br><br>
+        <code style="font-size:0.68rem;color:rgba(215,228,255,0.5)">
+          ../Timeline/Timeline-JEL/data/cv-data/cv-data-enriched.js
+        </code><br><br>
+        Try: <code style="font-size:0.68rem;color:rgba(215,228,255,0.5)">
+          python3 -m http.server 8000
+        </code><br>from <code style="font-size:0.68rem;color:rgba(215,228,255,0.5)">
+          Coding-Experiments/
+        </code>
+      </p>
+    `;
+    return;
+  }
+
+  allData = window.__TIMELINE_DATA__;
+
+  getSize();
+  svg.attr('width', W).attr('height', H);
+  bgRect.attr('width', W).attr('height', H);
+
+  addStarfield();
+  updateSliderUI();
+  render(computeGraph(yearMin, yearMax));
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
