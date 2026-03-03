@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Arc — Jason E. Lewis</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #060b18;
+      color: rgba(215,228,255,0.88);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    #arc { position: absolute; top: 0; left: 0; }
+
+    #viz-nav {
+      position: absolute;
+      top: 16px; left: 24px;
+      display: flex;
+      gap: 4px;
+    }
+    .viz-nav-btn {
+      background: none;
+      border: 1px solid rgba(215,228,255,0.1);
+      color: rgba(215,228,255,0.3);
+      font-size: 0.67rem;
+      padding: 4px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .viz-nav-btn:hover { background: rgba(215,228,255,0.05); color: rgba(215,228,255,0.65); }
+    .viz-nav-btn.active {
+      background: rgba(215,228,255,0.08);
+      border-color: rgba(215,228,255,0.25);
+      color: rgba(215,228,255,0.85);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    #info {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 252px;
+      background: rgba(6,11,28,0.92);
+      border: 1px solid rgba(215,228,255,0.09);
+      border-radius: 8px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+    .info-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .info-body {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .info-meta {
+      font-size: 0.7rem;
+      color: rgba(215,228,255,0.4);
+      line-height: 1.65;
+    }
+    .info-hint {
+      font-size: 0.74rem;
+      color: rgba(215,228,255,0.3);
+      line-height: 1.85;
+    }
+  </style>
+</head>
+<body>
+
+<svg id="arc"></svg>
+
+<nav id="viz-nav">
+  <a class="viz-nav-btn" href="index.html">Orbits</a>
+  <a class="viz-nav-btn" href="helix.html">Spiral</a>
+  <a class="viz-nav-btn active" href="arc.html">Arc</a>
+  <a class="viz-nav-btn" href="constellation.html">Stars</a>
+</nav>
+
+<div id="info">
+  <div id="info-content">
+    <p class="info-hint">
+      Above the line:<br>
+      who has been with you.<br><br>
+      Below the line:<br>
+      what you keep returning to.<br><br>
+      Hover to read.
+    </p>
+  </div>
+</div>
+
+<script src="data/cv-data-enriched.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// COLLABORATORS
+// Each gets a span arc above the timeline, from first appearance
+// to last. Height encodes duration. Heather Igloliorte (40 years)
+// is the tallest.
+// ═══════════════════════════════════════════════════════════════
+
+const COLLABS = [
+  { id: 'skawennati',    label: 'Skawennati',              color: '#fde68a' },
+  { id: 'heather',       label: 'Heather Igloliorte',      color: '#86efac' },
+  { id: 'archer',        label: 'Archer Pechawis',         color: '#fdba74' },
+  { id: 'suzanne',       label: 'Suzanne Kite',            color: '#f9a8d4' },
+  { id: 'noelani',       label: 'Noelani Arista',          color: '#bfdbfe' },
+  { id: 'scott',         label: 'Scott Benesiinaabandan',  color: '#ddd6fe' },
+  { id: 'bruno',         label: 'Bruno Nadeau',            color: '#a7f3d0' },
+  { id: 'elan',          label: 'Elan Zananiri',           color: '#fca5a5' },
+  { id: 'maroussia',     label: 'Maroussia Lévesque',      color: '#d9f99d' },
+  { id: 'yves',          label: 'Yves Assogba',            color: '#e9d5ff' },
+  { id: 'ceyda',         label: 'Ceyda Yolgörmez',         color: '#fed7aa' },
+  { id: 'michael',       label: 'Michael Longford',        color: '#ccfbf1' },
+];
+
+function normalizeCollab(name) {
+  const n = name.trim().toLowerCase();
+  if (n.includes('skawennati'))          return 'skawennati';
+  if (n.includes('nadeau'))              return 'bruno';
+  if (n.includes('suzanne') || (n.includes('kite') && !n.includes('nadeau'))) return 'suzanne';
+  if (n.includes('lévesque') || n.includes('levesque')) return 'maroussia';
+  if (n.includes('benesiinaabandan'))    return 'scott';
+  if (n.includes('arista'))             return 'noelani';
+  if (n.includes('pechawis'))           return 'archer';
+  if (n.includes('longford'))           return 'michael';
+  if (n.includes('igloliorte'))         return 'heather';
+  if (n.includes('assogba'))            return 'yves';
+  if (n.includes('zananiri'))           return 'elan';
+  if (n.includes('yolgörmez') || n.includes('yolgormez')) return 'ceyda';
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONCEPTUAL STRANDS (same as helix/orbits)
+// ═══════════════════════════════════════════════════════════════
+
+const STRANDS = [
+  {
+    id: 'territory', label: 'Territory & Sovereignty', color: '#f5a623',
+    themes: new Set(['Indigenous futures','Indigenous digital sovereignty',
+      'Aboriginal territories in cyberspace','Language revitalization',
+      'Settler colonialism and technology','Indigenous methodologies','Indigenous pedagogy']),
+    groups: new Set(['Policy Papers','Keynotes','Service']),
+  },
+  {
+    id: 'word', label: 'The Living Word', color: '#c084fc',
+    themes: new Set(['Electronic literature','Computational poetry','Digital storytelling',
+      'Generative media','Creative coding','Mobile media','Sound and music','AI and creativity']),
+    groups: new Set(['Poetry',"Artist's Books",'Websites','Invited Publications']),
+  },
+  {
+    id: 'making', label: 'Making & Practice', color: '#38bdf8',
+    themes: new Set(['New media art','Computational media','Interactive installation',
+      'Cultural technology','Research-creation','Curatorial practice','Game design']),
+    groups: new Set(['Creative Works','Group Exhibitions','Solo Exhibitions',
+      'Commissions','Residencies','Curatorial','Productions','Film Screenings']),
+  },
+  {
+    id: 'infrastructure', label: 'Building Infrastructure', color: '#fb7185',
+    themes: new Set(['Digital infrastructure','Community engagement','Collaboration and co-creation']),
+    groups: new Set(['Employment','Funding (PI)','Funding (Co-I)',
+      'Symposia Organized','Residency Organizer','Books/Chapters','Journal Articles','Honors']),
+  },
+];
+
+function assignStrand(entry) {
+  const themes = entry.themes || [], group = entry.group || '';
+  let best = STRANDS[0], bestScore = -1;
+  for (const s of STRANDS) {
+    let score = themes.filter(t => s.themes.has(t)).length * 2;
+    if (s.groups.has(group)) score += 1.5;
+    if (score > bestScore) { bestScore = score; best = s; }
+  }
+  return best;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+
+const YEAR_MIN = 1985;
+const YEAR_MAX = 2026;
+
+function parseYear(s) {
+  if (!s) return null;
+  const parts = String(s).split('/');
+  if (parts.length === 3) { const y = parseInt(parts[2]); return isNaN(y) ? null : y; }
+  const m = String(s).match(/\b(19|20)\d{2}\b/);
+  return m ? parseInt(m[0]) : null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LAYOUT
+// ═══════════════════════════════════════════════════════════════
+
+let W, H, padL, padR, baseline, aboveH, belowH;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('arc');
+
+function layout() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  padL = 64;
+  padR = 64;
+  baseline = Math.round(H * 0.62);
+  aboveH   = baseline - 82;       // space above for collaborator arcs
+  belowH   = H - baseline - 72;   // space below for strand arcs
+}
+
+function xOf(year) {
+  return padL + (year - YEAR_MIN) / (YEAR_MAX - YEAR_MIN) * (W - padL - padR);
+}
+
+function arcH_above(span) {
+  return Math.min(Math.sqrt(Math.max(span, 0.5)) * 30, aboveH * 0.9);
+}
+
+function arcH_below(gap) {
+  return Math.min(Math.sqrt(Math.max(gap, 0.5)) * 22, belowH * 0.88);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD DATA
+// ═══════════════════════════════════════════════════════════════
+
+let collabSpans  = [];   // { collab, firstYear, lastYear, activeYears[] }
+let strandBands  = [];   // { strand, y1, y2, gap, count }
+let yearDots     = [];   // { year, strand, count, entries[] } — one per strand per active year
+let allEntries   = [];
+
+function buildData() {
+  const raw = window.__TIMELINE_DATA__ || [];
+
+  // --- Collab spans ---
+  const collabYears = {};
+  const collabEntries = {};
+  for (const entry of raw) {
+    const year = parseYear(entry['start date']);
+    if (!year) continue;
+    for (const c of entry.collaborators || []) {
+      const id = normalizeCollab(c);
+      if (!id) continue;
+      if (!collabYears[id])   collabYears[id]   = new Set();
+      if (!collabEntries[id]) collabEntries[id] = [];
+      collabYears[id].add(year);
+      collabEntries[id].push({ year, entry });
+    }
+  }
+  collabSpans = COLLABS
+    .filter(c => collabYears[c.id])
+    .map(c => {
+      const years = [...collabYears[c.id]].sort((a,b) => a-b);
+      return {
+        ...c,
+        firstYear:   years[0],
+        lastYear:    years[years.length - 1],
+        activeYears: years,
+        entries:     (collabEntries[c.id] || []).sort((a,b) => a.year - b.year),
+      };
+    })
+    .sort((a, b) => (b.lastYear - b.firstYear) - (a.lastYear - a.firstYear)); // tallest first
+
+  // --- Strand year-bands ---
+  const strandByYear = {};
+  for (const s of STRANDS) strandByYear[s.id] = {};
+
+  allEntries = [];
+  for (const entry of raw) {
+    const year = parseYear(entry['start date']);
+    if (!year || year < YEAR_MIN || year > YEAR_MAX) continue;
+    const strand = assignStrand(entry);
+    allEntries.push({ year, entry, strand });
+    if (!strandByYear[strand.id][year]) strandByYear[strand.id][year] = [];
+    strandByYear[strand.id][year].push(entry);
+  }
+
+  // Year dots
+  yearDots = [];
+  for (const s of STRANDS) {
+    for (const [yr, entries] of Object.entries(strandByYear[s.id])) {
+      yearDots.push({ year: parseInt(yr), strand: s, count: entries.length, entries });
+    }
+  }
+
+  // Strand arcs: connect consecutive active years within each strand
+  strandBands = [];
+  for (const s of STRANDS) {
+    const years = Object.keys(strandByYear[s.id]).map(Number).sort((a,b) => a-b);
+    for (let i = 1; i < years.length; i++) {
+      const y1 = years[i - 1], y2 = years[i];
+      const gap = y2 - y1;
+      if (gap < 2) continue; // adjacent years — skip, not interesting
+      const count = strandByYear[s.id][y1].length + strandByYear[s.id][y2].length;
+      strandBands.push({ strand: s, y1, y2, gap, count });
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+
+let hoveredItem = null; // { type: 'collab'|'strand'|'dot', data }
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function txt(content, attrs = {}, parent) {
+  const e = el('text', attrs, parent);
+  e.textContent = content;
+  return e;
+}
+
+function render() {
+  svg.innerHTML = '';
+
+  const defs = el('defs', {}, svg);
+  defs.innerHTML = `
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-sm" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  `;
+
+  // ── Background glow ─────────────────────────────────────────
+  const bgG = el('radialGradient',
+    { id: 'bg-grad', cx: '50%', cy: '62%', r: '55%' }, defs);
+  el('stop', { offset: '0%',   'stop-color': 'rgba(18,26,58,0.6)' }, bgG);
+  el('stop', { offset: '100%', 'stop-color': 'rgba(6,11,24,0)' },    bgG);
+  el('rect', { x: 0, y: 0, width: W, height: H,
+    fill: 'url(#bg-grad)' }, svg);
+
+  // ── Header ───────────────────────────────────────────────────
+  const hdr = el('g', { class: 'header' }, svg);
+  txt('CAREER ARC', { x: 24, y: 78,
+    fill: 'rgba(215,228,255,0.82)', 'font-size': 11,
+    'font-weight': 'bold', 'letter-spacing': '0.1em' }, hdr);
+  txt('Jason E. Lewis  ·  1985 – 2026', { x: 24, y: 94,
+    fill: 'rgba(215,228,255,0.28)', 'font-size': 10 }, hdr);
+
+  // ── Collaborator arcs (ABOVE) ────────────────────────────────
+  const collabG = el('g', { class: 'collabs' }, svg);
+
+  for (const c of collabSpans) {
+    const x1  = xOf(c.firstYear);
+    const x2  = xOf(c.lastYear);
+    const mx  = (x1 + x2) / 2;
+    const span = c.lastYear - c.firstYear;
+    const h   = arcH_above(span);
+    const cy  = baseline - h;
+    const isHov = hoveredItem?.type === 'collab' && hoveredItem.data.id === c.id;
+    const isDimmed = hoveredItem && !isHov;
+    const alpha = isDimmed ? 0.04 : (isHov ? 0.75 : 0.22);
+    const lw    = isDimmed ? 0.3  : (isHov ? 2.2  : 1.0);
+
+    const arcG = el('g', { class: 'collab-arc', 'data-id': c.id }, collabG);
+
+    // Visible arc
+    el('path', {
+      d: `M ${x1} ${baseline} Q ${mx} ${cy} ${x2} ${baseline}`,
+      stroke: c.color, 'stroke-width': lw, fill: 'none',
+      opacity: alpha,
+      filter: isHov ? 'url(#glow-sm)' : 'none',
+    }, arcG);
+
+    // Wide invisible hit target
+    const hit = el('path', {
+      d: `M ${x1} ${baseline} Q ${mx} ${cy} ${x2} ${baseline}`,
+      stroke: 'transparent', 'stroke-width': 14, fill: 'none',
+      cursor: 'pointer', 'pointer-events': 'stroke',
+    }, arcG);
+    hit.addEventListener('mouseenter', () => { hoveredItem = { type: 'collab', data: c }; showCollabInfo(c); render(); });
+    hit.addEventListener('mouseleave', () => { hoveredItem = null; clearInfo(); render(); });
+
+    // Activity dots along the arc for each active year
+    for (const yr of c.activeYears) {
+      const t  = (yr - c.firstYear) / Math.max(span, 1);
+      // Point on quadratic bezier: B(t) = (1-t)²P0 + 2t(1-t)P1 + t²P2
+      const bx = (1-t)*(1-t)*x1 + 2*t*(1-t)*mx + t*t*x2;
+      const by = (1-t)*(1-t)*baseline + 2*t*(1-t)*cy + t*t*baseline;
+      el('circle', {
+        cx: bx, cy: by, r: isHov ? 3 : 1.5,
+        fill: c.color, opacity: isDimmed ? 0.03 : (isHov ? 0.9 : 0.5),
+      }, arcG);
+    }
+
+    // Label at arc apex
+    if (!isDimmed) {
+      const labelAlpha = isHov ? 0.9 : 0.35;
+      txt(c.label, {
+        x: mx, y: cy - 6,
+        fill: c.color, opacity: labelAlpha,
+        'font-size': isHov ? 11 : 9,
+        'text-anchor': 'middle',
+        'pointer-events': 'none',
+      }, arcG);
+    }
+  }
+
+  // ── Timeline axis ────────────────────────────────────────────
+  const axisG = el('g', { class: 'axis' }, svg);
+
+  el('line', {
+    x1: padL, y1: baseline, x2: W - padR, y2: baseline,
+    stroke: 'rgba(215,228,255,0.14)', 'stroke-width': 1,
+  }, axisG);
+
+  const milestones = [1985,1990,1995,2000,2005,2010,2015,2020,2025,2026];
+  for (const yr of milestones) {
+    const x = xOf(yr);
+    el('line', { x1: x, y1: baseline - 5, x2: x, y2: baseline + 5,
+      stroke: 'rgba(215,228,255,0.12)', 'stroke-width': 1 }, axisG);
+    txt(yr, { x, y: baseline + 18,
+      fill: 'rgba(215,228,255,0.22)', 'font-size': 9, 'text-anchor': 'middle' }, axisG);
+  }
+
+  // Axis divider label
+  txt('collaborators', { x: padL - 8, y: baseline - 18,
+    fill: 'rgba(215,228,255,0.15)', 'font-size': 8,
+    'text-anchor': 'end', 'letter-spacing': '0.08em' }, axisG);
+  txt('themes', { x: padL - 8, y: baseline + 30,
+    fill: 'rgba(215,228,255,0.15)', 'font-size': 8,
+    'text-anchor': 'end', 'letter-spacing': '0.08em' }, axisG);
+
+  // ── Strand arcs (BELOW) ──────────────────────────────────────
+  const strandG = el('g', { class: 'strands' }, svg);
+
+  // Sort: tallest first (drawn at back)
+  const sortedBands = [...strandBands].sort((a,b) => (b.y2-b.y1)-(a.y2-a.y1));
+
+  for (const band of sortedBands) {
+    const x1  = xOf(band.y1);
+    const x2  = xOf(band.y2);
+    const mx  = (x1 + x2) / 2;
+    const h   = arcH_below(band.gap);
+    const cy  = baseline + h;
+    const isHov = hoveredItem?.type === 'strand' &&
+                  hoveredItem.data.strand.id === band.strand.id &&
+                  hoveredItem.data.y1 === band.y1;
+    const isStrandHov = hoveredItem?.type === 'strand' &&
+                        hoveredItem.data.strand.id === band.strand.id;
+    const isDimmed = hoveredItem && hoveredItem.type === 'strand' && !isStrandHov;
+
+    const lw    = isDimmed ? 0.2 : (band.gap >= 8 ? 1.2 : band.gap >= 4 ? 0.8 : 0.5);
+    const alpha = isDimmed ? 0.03 : (band.gap >= 8 ? 0.32 : band.gap >= 4 ? 0.2 : 0.1);
+
+    const bG = el('g', { class: 'strand-arc' }, strandG);
+
+    el('path', {
+      d: `M ${x1} ${baseline} Q ${mx} ${cy} ${x2} ${baseline}`,
+      stroke: band.strand.color, 'stroke-width': lw, fill: 'none',
+      opacity: alpha,
+    }, bG);
+
+    // Wide hit target
+    const hit = el('path', {
+      d: `M ${x1} ${baseline} Q ${mx} ${cy} ${x2} ${baseline}`,
+      stroke: 'transparent', 'stroke-width': 12, fill: 'none',
+      cursor: 'pointer', 'pointer-events': 'stroke',
+    }, bG);
+    hit.addEventListener('mouseenter', () => {
+      hoveredItem = { type: 'strand', data: band };
+      showStrandInfo(band);
+      render();
+    });
+    hit.addEventListener('mouseleave', () => { hoveredItem = null; clearInfo(); render(); });
+  }
+
+  // ── Year dots on the axis ────────────────────────────────────
+  const dotG = el('g', { class: 'dots' }, svg);
+
+  // Strand y-offsets so dots don't all stack on the same pixel
+  const strandDotOffset = { territory: -3, word: -1, making: 1, infrastructure: 3 };
+
+  for (const d of yearDots) {
+    const x   = xOf(d.year);
+    const yOff = strandDotOffset[d.strand.id] || 0;
+    const r   = Math.min(1.2 + Math.sqrt(d.count) * 0.7, 7);
+    const isHov = hoveredItem?.type === 'dot' &&
+                  hoveredItem.data.year === d.year &&
+                  hoveredItem.data.strand.id === d.strand.id;
+    const isDimmed = hoveredItem && !isHov;
+    const alpha = isDimmed ? 0.04 : (isHov ? 1 : 0.55);
+
+    const dG = el('g', { class: 'year-dot' }, dotG);
+
+    // Glow for hovered dot
+    if (isHov) {
+      el('circle', { cx: x, cy: baseline + yOff, r: r * 3.5,
+        fill: d.strand.color, opacity: 0.18, 'pointer-events': 'none',
+        filter: 'url(#glow)' }, dG);
+    }
+
+    const dot = el('circle', {
+      cx: x, cy: baseline + yOff, r: isHov ? r * 1.4 : r,
+      fill: d.strand.color, opacity: alpha,
+      cursor: 'pointer',
+    }, dG);
+    dot.addEventListener('mouseenter', () => {
+      hoveredItem = { type: 'dot', data: d };
+      showDotInfo(d);
+      render();
+    });
+    dot.addEventListener('mouseleave', () => { hoveredItem = null; clearInfo(); render(); });
+  }
+
+  // ── Legend ───────────────────────────────────────────────────
+  const legG = el('g', { class: 'legend' }, svg);
+
+  // Collab section
+  txt('COLLABORATIONS', { x: W - padR - 160, y: H - 10 - COLLABS.length * 0 - 16,
+    fill: 'rgba(215,228,255,0.18)', 'font-size': 7.5, 'letter-spacing': '0.08em' }, legG);
+
+  // Strand section
+  let legY = H - 12 - STRANDS.length * 17;
+  txt('THEMES', { x: padL, y: legY - 8,
+    fill: 'rgba(215,228,255,0.18)', 'font-size': 7.5, 'letter-spacing': '0.08em' }, legG);
+  for (const s of STRANDS) {
+    const isHov = hoveredItem?.type === 'strand' && hoveredItem.data.strand.id === s.id;
+    const alpha = (hoveredItem?.type === 'strand' && !isHov) ? 0.15 : 0.65;
+    el('circle', { cx: padL + 5, cy: legY + 4, r: 4,
+      fill: s.color, opacity: alpha }, legG);
+    txt(s.label, { x: padL + 14, y: legY + 8,
+      fill: `rgba(215,228,255,${alpha})`, 'font-size': 9.5 }, legG);
+    legY += 17;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INFO PANEL
+// ═══════════════════════════════════════════════════════════════
+
+function showCollabInfo(c) {
+  const span = c.lastYear - c.firstYear;
+  const sample = c.entries.slice(0, 4)
+    .map(e => e.entry.headline?.replace(/<[^>]+>/g,'').trim())
+    .filter(Boolean);
+  document.getElementById('info-content').innerHTML = `
+    <div class="info-label" style="color:${c.color}">${esc(c.label)}</div>
+    <div class="info-body">${span} years together</div>
+    <div class="info-meta">
+      First: ${c.firstYear} &nbsp;·&nbsp; Last: ${c.lastYear}<br>
+      Active in ${c.activeYears.length} years<br><br>
+      ${sample.map(s => `· ${esc(s.length > 60 ? s.slice(0,58)+'…' : s)}`).join('<br>')}
+    </div>
+  `;
+}
+
+function showStrandInfo(band) {
+  document.getElementById('info-content').innerHTML = `
+    <div class="info-label" style="color:${band.strand.color}">${esc(band.strand.label)}</div>
+    <div class="info-body">${band.gap}-year return</div>
+    <div class="info-meta">
+      ${band.y1} → ${band.y2}<br>
+      The concern went quiet, then came back.
+    </div>
+  `;
+}
+
+function showDotInfo(d) {
+  const top3 = d.entries.slice(0, 3)
+    .map(e => e.headline?.replace(/<[^>]+>/g,'').trim()).filter(Boolean);
+  document.getElementById('info-content').innerHTML = `
+    <div class="info-label" style="color:${d.strand.color}">${esc(d.strand.label)}</div>
+    <div class="info-body">${d.year}</div>
+    <div class="info-meta">
+      ${d.count} ${d.count === 1 ? 'entry' : 'entries'}<br><br>
+      ${top3.map(s => `· ${esc(s.length > 62 ? s.slice(0,60)+'…' : s)}`).join('<br>')}
+    </div>
+  `;
+}
+
+function clearInfo() {
+  document.getElementById('info-content').innerHTML = `
+    <p class="info-hint">
+      Above the line:<br>
+      who has been with you.<br><br>
+      Below the line:<br>
+      what you keep returning to.<br><br>
+      Hover to read.
+    </p>
+  `;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+function init() {
+  layout();
+  buildData();
+  render();
+}
+
+window.addEventListener('resize', () => { layout(); render(); });
+
+if (typeof window.__TIMELINE_DATA__ !== 'undefined') {
+  init();
+} else {
+  svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle"
+    fill="rgba(215,228,255,0.4)" font-size="13" font-family="system-ui">
+    Data not loaded — serve from Coding-Experiments/ with python3 -m http.server 8001
+  </text>`;
+}
+</script>
+</body>
+</html>
