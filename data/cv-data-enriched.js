@@ -1058,22 +1058,9 @@ window.__TIMELINE_DATA__ = [
     "program": "",
     "funding_group": "",
     "category_group": "",
-    "themes": [
-      "Indigenous art history",
-      "Curatorial practice",
-      "Indigenous methodologies",
-      "Decolonization"
-    ],
-    "concepts": [
-      "visual sovereignty",
-      "epistemologies and ontologies",
-      "curatorial methodologies",
-      "land-based knowledges"
-    ],
-    "collaborators": [
-      "Heather Igloliorte",
-      "Carla Taunton"
-    ]
+    "themes": [],
+    "concepts": [],
+    "collaborators": []
   },
   {
     "start date": "01/01/1985",

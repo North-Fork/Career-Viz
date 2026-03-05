@@ -6,6 +6,14 @@
   <title>Career Helix — Jason E. Lewis</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #060b18;
+      --text:   rgba(215, 228, 255, 0.88);
+      --dim:    rgba(215, 228, 255, 0.38);
+      --border: rgba(215, 228, 255, 0.09);
+    }
+
     html, body {
       width: 100%; height: 100%;
       background: #060b18;
@@ -13,6 +21,43 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       overflow: hidden;
     }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    header {
+      flex-shrink: 0;
+      padding: 16px 24px 11px;
+      border-bottom: 1px solid rgba(215,228,255,0.09);
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(215,228,255,0.88);
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: rgba(215,228,255,0.38);
+      letter-spacing: 0.04em;
+    }
+
+    #viz-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
     #c { display: block; }
 
     #info {
@@ -83,11 +128,9 @@
     }
 
     #viz-nav {
-      position: absolute;
-      top: 16px; left: 24px;
       display: flex;
       gap: 4px;
-      margin-top: 52px;
+      margin-left: auto;
     }
     .viz-nav-btn {
       background: none;
@@ -116,30 +159,37 @@
   </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<div id="app">
+  <header>
+    <h1>Career Spiral</h1>
+    <span class="subtitle">Jason E. Lewis &nbsp;·&nbsp; Career Themes</span>
+    <nav id="viz-nav">
+      <a class="viz-nav-btn" href="index.html">Orbits</a>
+      <a class="viz-nav-btn active" href="helix.html">Spiral</a>
+      <a class="viz-nav-btn" href="arc.html">Arc</a>
+      <a class="viz-nav-btn" href="constellation.html">Stars</a>
+    </nav>
+  </header>
+  <div id="viz-wrap">
+    <canvas id="c"></canvas>
 
-<div id="viz-nav">
-  <a class="viz-nav-btn" href="index.html">Orbits</a>
-  <a class="viz-nav-btn active" href="helix.html">Spiral</a>
-  <a class="viz-nav-btn" href="arc.html">Arc</a>
-  <a class="viz-nav-btn" href="constellation.html">Stars</a>
-</div>
+    <div id="info">
+      <div id="info-content">
+        <p class="info-hint">
+          Hover an entry to read it.<br><br>
+          Each strand is a recurring concern<br>
+          winding through the career—<br>
+          the same question, asked again<br>
+          at larger scale each time.
+        </p>
+      </div>
+    </div>
 
-<div id="info">
-  <div id="info-content">
-    <p class="info-hint">
-      Hover an entry to read it.<br><br>
-      Each strand is a recurring concern<br>
-      winding through the career—<br>
-      the same question, asked again<br>
-      at larger scale each time.
-    </p>
+    <div id="controls">
+      <button class="ctrl-btn active" id="btn-rotate">⟳ Rotate</button>
+      <button class="ctrl-btn" id="btn-pause">⏸ Pause</button>
+    </div>
   </div>
-</div>
-
-<div id="controls">
-  <button class="ctrl-btn active" id="btn-rotate">⟳ Rotate</button>
-  <button class="ctrl-btn" id="btn-pause">⏸ Pause</button>
 </div>
 
 <script src="data/cv-data-enriched.js"></script>
@@ -253,8 +303,9 @@ let W, H, cx, helixH, topPad, botPad, R, dpr;
 
 function resize() {
   dpr = window.devicePixelRatio || 1;
-  W = window.innerWidth;
-  H = window.innerHeight;
+  const wrap = canvas.parentElement;
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
   canvas.width  = Math.round(W * dpr);
   canvas.height = Math.round(H * dpr);
   canvas.style.width  = W + 'px';

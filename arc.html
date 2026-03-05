@@ -6,6 +6,14 @@
   <title>Career Arc — Jason E. Lewis</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #060b18;
+      --text:   rgba(215, 228, 255, 0.88);
+      --dim:    rgba(215, 228, 255, 0.38);
+      --border: rgba(215, 228, 255, 0.09);
+    }
+
     html, body {
       width: 100%; height: 100%;
       background: #060b18;
@@ -13,13 +21,49 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       overflow: hidden;
     }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    header {
+      flex-shrink: 0;
+      padding: 16px 24px 11px;
+      border-bottom: 1px solid rgba(215,228,255,0.09);
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(215,228,255,0.88);
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: rgba(215,228,255,0.38);
+      letter-spacing: 0.04em;
+    }
+
+    #viz-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
     #arc { position: absolute; top: 0; left: 0; }
 
     #viz-nav {
-      position: absolute;
-      top: 16px; left: 24px;
       display: flex;
       gap: 4px;
+      margin-left: auto;
     }
     .viz-nav-btn {
       background: none;
@@ -81,25 +125,31 @@
   </style>
 </head>
 <body>
+<div id="app">
+  <header>
+    <h1>Career Arc</h1>
+    <span class="subtitle">Jason E. Lewis &nbsp;·&nbsp; Career Themes</span>
+    <nav id="viz-nav">
+      <a class="viz-nav-btn" href="index.html">Orbits</a>
+      <a class="viz-nav-btn" href="helix.html">Spiral</a>
+      <a class="viz-nav-btn active" href="arc.html">Arc</a>
+      <a class="viz-nav-btn" href="constellation.html">Stars</a>
+    </nav>
+  </header>
+  <div id="viz-wrap">
+    <svg id="arc"></svg>
 
-<svg id="arc"></svg>
-
-<nav id="viz-nav">
-  <a class="viz-nav-btn" href="index.html">Orbits</a>
-  <a class="viz-nav-btn" href="helix.html">Spiral</a>
-  <a class="viz-nav-btn active" href="arc.html">Arc</a>
-  <a class="viz-nav-btn" href="constellation.html">Stars</a>
-</nav>
-
-<div id="info">
-  <div id="info-content">
-    <p class="info-hint">
-      Above the line:<br>
-      who has been with you.<br><br>
-      Below the line:<br>
-      what you keep returning to.<br><br>
-      Hover to read.
-    </p>
+    <div id="info">
+      <div id="info-content">
+        <p class="info-hint">
+          Above the line:<br>
+          who has been with you.<br><br>
+          Below the line:<br>
+          what you keep returning to.<br><br>
+          Hover to read.
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -212,8 +262,9 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const svg = document.getElementById('arc');
 
 function layout() {
-  W = window.innerWidth;
-  H = window.innerHeight;
+  const wrap = svg.parentElement;
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
   svg.setAttribute('width', W);
   svg.setAttribute('height', H);
   padL = 64;
@@ -353,14 +404,6 @@ function render() {
   el('stop', { offset: '100%', 'stop-color': 'rgba(6,11,24,0)' },    bgG);
   el('rect', { x: 0, y: 0, width: W, height: H,
     fill: 'url(#bg-grad)' }, svg);
-
-  // ── Header ───────────────────────────────────────────────────
-  const hdr = el('g', { class: 'header' }, svg);
-  txt('CAREER ARC', { x: 24, y: 78,
-    fill: 'rgba(215,228,255,0.82)', 'font-size': 11,
-    'font-weight': 'bold', 'letter-spacing': '0.1em' }, hdr);
-  txt('Jason E. Lewis  ·  1985 – 2026', { x: 24, y: 94,
-    fill: 'rgba(215,228,255,0.28)', 'font-size': 10 }, hdr);
 
   // ── Collaborator arcs (ABOVE) ────────────────────────────────
   const collabG = el('g', { class: 'collabs' }, svg);

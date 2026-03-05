@@ -74,38 +74,38 @@ Four approaches to try, each as a separate self-contained HTML file:
 
 | # | File | Name | Description | Status |
 |---|------|------|-------------|--------|
-| 1 | `index.html` | Orbits | Force-directed network: nodes = themes; edges = co-occurrence; animated over time | Built |
-| 2 | `helix.html` | Spiral | Time on vertical axis; recurring concerns spiral outward at growing scale | Built |
-| 3 | `arc.html` | Arc | Above axis = collaborator span arcs (who); below = strand rhythm arcs (what) | Built |
-| 4 | `constellation.html` | Stars | 949 particles drifting in 4 clusters; PoEMM-like physics; Grow animation | Built |
+| 1 | `index.html` | Career Constellation | Force-directed network: nodes = themes; edges = co-occurrence; animated over time | Built |
+| 2 | `helix.html` | Career Spiral | Time on vertical axis; recurring concerns spiral outward at growing scale | Built |
+| 3 | `arc.html` | Career Arc | Above axis = collaborator span arcs (who); below = strand rhythm arcs (what) | Built |
+| 4 | `constellation.html` | Career Stars | 949 particles drifting in 4 clusters; PoEMM-like physics; Grow animation | Built |
 
-All four share a nav bar: Orbits / Spiral / Arc / Stars.
+All four share a consistent header: title + subtitle + nav selector (upper right). Nav selector position is fixed across all four pages.
 
 ---
 
 ## Visualization Notes
 
-### Orbits (`index.html`)
+### Career Constellation (`index.html`)
 - D3 force-directed network; external CDN dependency (d3 v7)
 - Nodes = themes, sized by entry count; edges = co-occurrence weight
 - Dual-handle year range slider + ▶ Grow animation
 - Core / Full toggle filters low-frequency themes
 
-### Spiral (`helix.html`)
+### Career Spiral (`helix.html`)
 - Canvas 2D; no external dependencies
 - 3D helix projected to 2D; slow auto-rotation (ROT_SPEED = 0.0016 rad/frame)
 - 4 conceptual strands at 90° offsets; strand width varies with entry density
 - Hover highlights full strand lifespan; Rotate / Pause buttons
 
-### Arc (`arc.html`)
+### Career Arc (`arc.html`)
 - SVG; no external dependencies
 - **Above the timeline:** one span arc per collaborator (first → last year); activity dots on arc curve
 - **Below the timeline:** strand arcs connect consecutive active years when gap ≥ 2 years
 - Entry count per strand: territory 533, making 227, word 152, infrastructure 37
 - Collaborator normalization handles name variants (Skawennati / Skawennati Fragnito, etc.)
-- Heather Igloliorte (1985–2025, 40yr) is the tallest arc
+- Heather Igloliorte (2011–2025) — corrected from erroneous 1985 start (AI enrichment had hallucinated her onto a 1985 scholarship)
 
-### Stars (`constellation.html`)
+### Career Stars (`constellation.html`)
 - Canvas 2D; no external dependencies; ~949 particles
 - Spring physics: each particle has a `homeX/homeY` within its cluster, spring constant 0.0022, damping 0.955
 - **Cursor interaction:** tangential eddy force (NOT repulsion) — perpendicular to cursor→particle
